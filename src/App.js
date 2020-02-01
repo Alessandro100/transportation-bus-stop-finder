@@ -1,6 +1,6 @@
-import React, { Component, setState, Fragment } from 'react';
+import React, { Component } from 'react';
 import logo from './assets/blaise-logo.png';
-import ReactMapGL, {Marker} from 'react-map-gl';
+import ReactMapGL, {Popup} from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css'
 import './App.scss';
 import CustomMarker from './Components/CustomMarker';
@@ -8,6 +8,7 @@ import DeckGL from '@deck.gl/react';
 import {LineLayer} from '@deck.gl/layers';
 import passengerData from './data/passengers';
 import busStopData from './data/stops';
+import { getDistanceFromLatLonInKm } from './lib/distance.js';
 
 
 const passengers = passengerData;
@@ -16,6 +17,10 @@ const stops = busStopData;
 class App extends Component {
 
   state = {
+    showPopup: false,
+    popupLat: null,
+    popupLon: null,
+    popupPassengers: null,
     viewport: {
       longitude: -73.577664,
       latitude: 45.512024,
@@ -27,43 +32,37 @@ class App extends Component {
 
   getClosestBusCoordinate(passenger) {
     var closestDistance = null;
-    var closestBusStop = null;
+    var closestBusStop = null;    
     stops.forEach(stop => {
-      var distance = this.getDistanceFromLatLonInKm(passenger.lat, passenger.lon, stop.lat, stop.lon);
+      var distance = getDistanceFromLatLonInKm(passenger.lat, passenger.lon, stop.lat, stop.lon);
       if(!closestDistance || distance < closestDistance) {
         closestDistance = distance;
         closestBusStop = stop;
       }
-    });
-    closestBusStop['passengerCount'] += 1
+    });    
     return closestBusStop;
   }
 
-  getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
-    var R = 6371; // Radius of the earth in km
-    var dLat = this.deg2rad(lat2-lat1);  // deg2rad below
-    var dLon = this.deg2rad(lon2-lon1); 
-    var a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2); 
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-    var d = R * c; // Distance in km
-    return d;
-  }
-  
-  deg2rad(deg) {
-    return deg * (Math.PI/180)
-  }
 
   _onViewportChange = viewport => this.setState({viewport});
+
+  _onMarkerHover = e => {
+    console.log("hi")
+    console.log(e);
+    this.setState({showPopup: true, popupLat: e.lat, popupLon: e.lon, popupPassengers: e.passengerCount});
+  };
+
+  _onMarkerLeave = e => {
+    console.log("bye")
+    this.setState({showPopup: false, popupLat: null, popupLon: null});
+  }
   
   render() {
-    const {viewport} = this.state;
-
+    const {viewport, showPopup, popupLat, popupLon, popupPassengers} = this.state;
     var layers = [];
-
     var token = 'pk.eyJ1IjoiYWxlc3NhbmRybzEwMCIsImEiOiJjazYybjIwajcwZzN6M2txb2JjdzF5NTlpIn0.SUvFKrKzPxRE7MxsFqdKPA'
+
+    stops.map(s => s['passengerCount'] = 0);
     
     return (
       <div className="App">
@@ -80,19 +79,41 @@ class App extends Component {
           height="100%"
           onViewportChange={this._onViewportChange}
         >
-          {stops.map((stop, i) =>{
-            stop['passengerCount'] = 0
-            return(<CustomMarker key={i} longitude={stop.lon} latitude={stop.lat} isBusStop='true'/>);
-          })}
-
+           {showPopup && <Popup
+              latitude={popupLat}
+              longitude={popupLon}
+              closeButton={false}
+              anchor="bottom"
+              offsetTop={-20} >
+              <div>Number of Passengers: {popupPassengers}</div>
+            </Popup>}
+          
           {passengers.map((passenger, i) =>{
             var closestBusStop = this.getClosestBusCoordinate(passenger);
+            var index = stops.indexOf(closestBusStop);
+            if (stops[index]['passengerCount']) {
+              stops[index]['passengerCount'] += 1
+            }else {
+              stops[index]['passengerCount'] = 1
+            }
             const data = [{
                 sourcePosition: [passenger.lon, passenger.lat], 
                 targetPosition: [closestBusStop.lon, closestBusStop.lat]
             }];
             layers.push(new LineLayer({id: 'line-layer-' + i, data, getWidth: 4}));
             return(<CustomMarker key={i} longitude={passenger.lon} latitude={passenger.lat} />);
+          })}
+
+          {stops.map((stop, i) =>{
+            var stopTemp = stops.filter(s => s.lat == stop.lat && s.lon == stop.lon)[0]
+            return(
+            <CustomMarker 
+            key={i} 
+            passengerCount={stopTemp['passengerCount'] ? stopTemp['passengerCount'] : 0} 
+            onMouseEnter={this._onMarkerHover} onMouseLeave={this._onMarkerLeave} 
+            longitude={stop.lon} 
+            latitude={stop.lat} 
+            isBusStop='true'/>);
           })}
           <DeckGL viewState={viewport} layers={layers} />
         </ReactMapGL>

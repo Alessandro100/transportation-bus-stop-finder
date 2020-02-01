@@ -14,7 +14,6 @@ class CustomMarker extends Component {
     constructor(props) {
       super(props);
       this.handleMouseHover = this.handleMouseHover.bind(this);
-      this.onClickMarker = this.onClickMarker.bind(this);
       this.state = {
         isHovering: false,
       };
@@ -22,7 +21,12 @@ class CustomMarker extends Component {
 
     handleMouseHover() {
       console.log("event!");
-      this.setState(this.toggleHoverState);
+      //this.setState(this.toggleHoverState);
+    }
+
+    _onMapHover = e =>{
+      console.log("hover###");
+      console.log(e);
     }
 
     toggleHoverState(state) {
@@ -30,38 +34,40 @@ class CustomMarker extends Component {
         isHovering: !state.isHovering,
       };
     }
-
-    onClickMarker(){
-      //this.setState({popupInfo: city});
-      console.log("hihihihi")
-    };
     
-
     render() {        
+      //const {onMouseEnter, onMouseLeave} = this.props;
+
       return (
         <Fragment>
           <div className='custom-marker'>
             <Marker 
-            latitude={parseFloat(this.props.latitude)} 
-            longitude={parseFloat(this.props.longitude)} 
-            captureClick={true}
-            onClick={this.onClickMarker()}>
+            latitude={parseFloat(this.props.latitude)}
+            longitude={parseFloat(this.props.longitude)}>
               {this.state.isHovering && (
                 <div className='custom-marker-popup'>
-                  HIHIHIHIHI -- hi
+                  hi this is the popup
                 </div>
               )}
               <svg
                 height={SIZE}
                 viewBox="0 0 24 24"
                 style={{
-                  cursor: 'pointer',
+                  cursor: (this.props.isBusStop == 'true' ? 'pointer' : ''),
                   fill: (this.props.isBusStop == 'true' ? 'blue' : '#d00') ,
                   stroke: 'none',
                   transform: `translate(${-SIZE / 2}px,${-SIZE}px)`
                 }}
-                onClick={this.onClickMarker()}
-                
+                onMouseEnter={() => {
+                  if (this.props.isBusStop){
+                    this.props.onMouseEnter({lon: this.props.longitude, lat: this.props.latitude, passengerCount: this.props.passengerCount})}
+                  }
+                }
+                onMouseLeave={() => {
+                  if (this.props.isBusStop){
+                    this.props.onMouseLeave()}
+                  }
+                } 
               >
                 <path d={ICON} />
               </svg>

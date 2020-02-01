@@ -1,5 +1,7 @@
 .custom-marker {
     position: relative;
+    z-index: 1;
+    
     .custom-marker-popup {
         position: absolute;
         background: white;
