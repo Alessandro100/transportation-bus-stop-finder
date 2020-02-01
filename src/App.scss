@@ -1,3 +1,5 @@
+$primary-color: #00ccad;
+
 .App {
   text-align: center;
 }
@@ -26,6 +28,19 @@
 
 .App-link {
   color: #61dafb;
+}
+
+//new
+
+header {
+  background-color: $primary-color;
+  width: 100%;
+  color: white;
+}
+
+.mapbox-map {
+  width: 500px;
+  height: 500px;
 }
 
 @keyframes App-logo-spin {
