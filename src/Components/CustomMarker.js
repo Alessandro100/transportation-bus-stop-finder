@@ -1,6 +1,5 @@
-import React, { Component, setState, Fragment } from 'react'
-import ReactMapGL, {Marker} from 'react-map-gl';
-import Tooltip from "react-simple-tooltip"
+import React, { Component, Fragment } from 'react'
+import {Marker} from 'react-map-gl';
 import './custom-marker.scss'
 
 const ICON = `M20.2,15.7L20.2,15.7c1.1-1.6,1.8-3.6,1.8-5.7c0-5.6-4.5-10-10-10S2,4.5,2,10c0,2,0.6,3.9,1.6,5.4c0,0.1,0.1,0.2,0.2,0.3
@@ -9,63 +8,34 @@ const ICON = `M20.2,15.7L20.2,15.7c1.1-1.6,1.8-3.6,1.8-5.7c0-5.6-4.5-10-10-10S2,
 
 const SIZE = 20;
 
-class CustomMarker extends Component {
-
-    constructor(props) {
-      super(props);
-      this.handleMouseHover = this.handleMouseHover.bind(this);
-      this.state = {
-        isHovering: false,
-      };
-    }
-
-    handleMouseHover() {
-      console.log("event!");
-      //this.setState(this.toggleHoverState);
-    }
-
-    _onMapHover = e =>{
-      console.log("hover###");
-      console.log(e);
-    }
-
-    toggleHoverState(state) {
-      return {
-        isHovering: !state.isHovering,
-      };
-    }
+class CustomMarker extends Component { 
     
-    render() {        
-      //const {onMouseEnter, onMouseLeave} = this.props;
+    render() {
+      const { latitude, longitude, isBusStop, onMouseEnter, onMouseLeave, passengerCount } = this.props
 
       return (
         <Fragment>
           <div className='custom-marker'>
             <Marker 
-            latitude={parseFloat(this.props.latitude)}
-            longitude={parseFloat(this.props.longitude)}>
-              {this.state.isHovering && (
-                <div className='custom-marker-popup'>
-                  hi this is the popup
-                </div>
-              )}
+            latitude={parseFloat(latitude)}
+            longitude={parseFloat(longitude)}>
               <svg
                 height={SIZE}
                 viewBox="0 0 24 24"
                 style={{
-                  cursor: (this.props.isBusStop == 'true' ? 'pointer' : ''),
-                  fill: (this.props.isBusStop == 'true' ? 'blue' : '#d00') ,
+                  cursor: (isBusStop ? 'pointer' : ''),
+                  fill: (isBusStop ? '#3066BE' : '#EF476F') ,
                   stroke: 'none',
                   transform: `translate(${-SIZE / 2}px,${-SIZE}px)`
                 }}
                 onMouseEnter={() => {
-                  if (this.props.isBusStop){
-                    this.props.onMouseEnter({lon: this.props.longitude, lat: this.props.latitude, passengerCount: this.props.passengerCount})}
+                  if (isBusStop){
+                    onMouseEnter({lon: longitude, lat: latitude, passengerCount: passengerCount})}
                   }
                 }
                 onMouseLeave={() => {
-                  if (this.props.isBusStop){
-                    this.props.onMouseLeave()}
+                  if (isBusStop){
+                    onMouseLeave()}
                   }
                 } 
               >

@@ -1,0 +1,2 @@
+//normally, this would be in a .env file, but for the sake of presenting, I kept it public
+export const MAP_BOX_TOKEN = 'pk.eyJ1IjoiYWxlc3NhbmRybzEwMCIsImEiOiJjazYybjIwajcwZzN6M2txb2JjdzF5NTlpIn0.SUvFKrKzPxRE7MxsFqdKPA';
